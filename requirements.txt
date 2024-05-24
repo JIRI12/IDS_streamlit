@@ -6,3 +6,4 @@ pandas
 joblib
 nmap
 bcrypt
+streamlit_autorefresh

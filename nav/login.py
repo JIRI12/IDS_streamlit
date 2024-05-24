@@ -5,7 +5,7 @@ def login(auth):
 
     username = st.text_input("Username")
     password = st.text_input("Password", type='password')
-    if st.button("Login"):
+    if st.button("SUBMIT"):
         if auth.login(username, password):
             st.session_state.logged_in = True
             st.session_state.username = username
