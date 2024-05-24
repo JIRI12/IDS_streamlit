@@ -1,3 +1,4 @@
+import streamlit as st
 import bcrypt
 
 class Auth:
@@ -14,13 +15,17 @@ class Auth:
 
     def login(self, username, password):
         user = self.db.get_user(username)
-        if user and self.check_password(user[2], password):  # Assuming the password is the third field
+        if user and self.check_password(user[2], password):
+            st.session_state.role = user[3]
             return True
         return False
 
-    def register(self, username, password):
+    def register(self, username, password, role):
         if self.db.get_user(username) is None:
             hashed_password = self.hash_password(password)
-            self.db.add_user(username, hashed_password)
+            self.db.add_user(username, hashed_password, role)
             return True
         return False
+
+    def update_role(self, username, role):
+        self.db.update_user_role(username, role)
