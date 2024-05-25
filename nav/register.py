@@ -10,6 +10,6 @@ def register(auth):
             st.success("Registered successfully")
             st.session_state.logged_in = True
             st.session_state.username = username
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Username already exists")

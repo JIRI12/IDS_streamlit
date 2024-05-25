@@ -21,25 +21,29 @@ class Database:
     def create_network_table(self):
         conn = self.create_connection()
         with conn:
-            conn.execute ('''CREATE TABLE IF NOT EXISTS network4 (
-                                 id INTEGER PRIMARY KEY,
-                                 timestamp REAL DEFAULT CURRENT_TIMESTAMP,
-                                 src_ip TEXT NOT NULL,
-                                 dst_ip TEXT NOT NULL,
-                                 protocol TEXT NOT NULL,
-                                 src_port INTEGER,
-                                 dst_port INTEGER,
-                                 packet_size INTEGER,
-                                 flags TEXT,
-                                 state TEXT,
-                                 payload BLOB  )''')
-                                 
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS network4 (
+                    id INTEGER PRIMARY KEY,
+                    timestamp REAL DEFAULT CURRENT_TIMESTAMP,
+                    src_ip TEXT NOT NULL,
+                    dst_ip TEXT NOT NULL,
+                    protocol TEXT NOT NULL,
+                    src_port INTEGER,
+                    dst_port INTEGER,
+                    packet_size INTEGER,
+                    flags TEXT,
+                    state TEXT,
+                    payload BLOB
+                )
+            ''')
 
-    def store_network_data(self, timestamp, src_ip, dst_ip , protocol, src_port,dst_port, packet_size, flags, state, payload):
+    def store_network_data(self, timestamp, src_ip, dst_ip, protocol, src_port, dst_port, packet_size, flags, state, payload):
         conn = self.create_connection()
         with conn:
-            conn.execute('INSERT INTO network_data (ip, protocol, port, state) VALUES (?, ?, ?, ?,?,?,?,?,?,?)',
-                              (timestamp, src_ip, dst_ip , protocol, src_port, dst_port,packet_size, flags, state, payload))
+            conn.execute('''
+                INSERT INTO network4 (timestamp, src_ip, dst_ip, protocol, src_port, dst_port, packet_size, flags, state, payload)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (timestamp, src_ip, dst_ip, protocol, src_port, dst_port, packet_size, flags, state, payload))
 
     def get_user(self, username):
         conn = self.create_connection()

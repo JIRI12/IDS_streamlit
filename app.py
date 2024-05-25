@@ -1,8 +1,10 @@
 import streamlit as st
-from nav import dashboard, login, register, profile
+from nav import dashboard, login, profile
 from utils.auth import Auth
 from utils.database import Database
-import nmap
+from utils.network_scan import network_scan
+
+
 
 # Initialize the database and authentication
 db = Database()
@@ -59,7 +61,8 @@ def main():
             
         if st.session_state.role == "admin":    
             if st.sidebar.button("Network Scan", key="network_scan_button"):
-                st.session_state.page = "network_scan"
+                scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
+                network_scan(scan_level)
             if st.sidebar.button("Manage Users", key="manage_users_button"):
                 st.session_state.page = "manage_users" 
                    
@@ -120,28 +123,7 @@ def manage_users():
         else:
             st.error("Failed to add user. Username might already exist.")        
 
-def network_scan():
-    st.header("Network Scan")
-    st.write("Scanning the network...")
-
-    nm = nmap.PortScanner()
-
-    @st.cache_data(ttl=60)
-    def scan_network():
-        results = nm.scan(hosts='192.168.0.1/24', arguments='-sT')
-        return results['scan']
-
-    hosts = scan_network()
-    st.write("Hosts currently on the network:")
-    for host in hosts:
-        st.write(f"IP: {host}, Status: {hosts[host]['status']['state']}")
-        
-        for proto in hosts[host].all_protocols():
-            lport = hosts[host][proto].keys()
-            for port in lport:
-                state = hosts[host][proto][port]['state']
-                st.write(f"Storing data: IP={host}, Protocol={proto}, Port={port}, State={state}")
-                db.store_network_data(host, proto, port, state)
 
 if __name__ == "__main__":
     main()
+
