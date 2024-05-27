@@ -3,6 +3,7 @@ from nav import dashboard, login, profile
 from utils.auth import Auth
 from utils.database import Database
 from utils.network_scan import network_scan
+import pandas as pd
 
 
 
@@ -36,12 +37,25 @@ def main():
 
         username = st.text_input("Username")
         password = st.text_input("Password", type='password')
+        confirm_password = st.text_input("Confirm Password", type='password')
         if st.button("Register"):
-            if authentication.register(username, password, 'admin'):
-                st.success("Admin registered successfully. Please log in.")
+            if password == confirm_password:
+                if authentication.register(username, password, 'admin'):
+                    st.success("Admin registered successfully. Please log in.")
+                    st.experimental_rerun()  # Redirect to the login page
+                else:
+                    st.error("Failed to register admin. Username might already exist.")
             else:
-                st.error("Failed to register admin. Username might already exist.")
+                st.error("Passwords do not match.")
         return  # Exit the main function to prevent showing the regular login/register interface
+
+    # if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+    #     login()
+    # else:
+    #     if st.session_state.role == 'admin':
+    #         manage_users()
+    #     else:
+    #         st.write("Welcome, you are logged in.")
     
     # Initialize session state variables
     if 'logged_in' not in st.session_state:
@@ -114,15 +128,57 @@ def manage_users():
     st.header("Manage Users")
     st.write("Only the admin can access this page")
 
-    new_username = st.text_input("New Username")
-    new_password = st.text_input("New Password", type='password')
-    role = st.selectbox("Role", ['user', 'admin'])
+    # Section to add a new user
+    st.subheader("Add New User")
+    new_username = st.text_input("New Username", key="new_username")
+    new_password = st.text_input("New Password", type='password', key="new_password")
+    confirm_password = st.text_input("Confirm Password", type='password', key="confirm_password")
+    role = st.selectbox("Role", ['user', 'admin'], key='new_user_role')
     if st.button("Add User"):
-        if authentication.register(new_username, new_password, role):
-            st.success("User added successfully")
+        if new_password == confirm_password:
+            if authentication.register(new_username, new_password, role):
+                st.success("User added successfully")
+                st.experimental_rerun()
+            else:
+                st.error("Failed to add user. Username might already exist.")
         else:
-            st.error("Failed to add user. Username might already exist.")        
+            st.error("Passwords do not match.")
 
+    # Section to edit existing users
+    st.subheader("Edit Existing Users")
+    
+    # Fetch users from the database
+    users = db.get_all_users()
+    
+    # Create a DataFrame to display users
+    user_data = {'Username': [user[1] for user in users], 'Role': [user[3] for user in users]}
+    df = pd.DataFrame(user_data)
+    
+    st.table(df)
+    
+    # Create interactive elements for each user to edit their details
+    for user in users:
+        with st.expander(f"Edit {user[1]}"):
+            new_username = st.text_input(f"Username for {user[1]}", value=user[1], key=f"username_{user[1]}")
+            new_password = st.text_input(f"New Password for {user[1]}", type='password', key=f"password_{user[1]}")
+            new_role = st.selectbox(f"Role for {user[1]}", ['user', 'admin'], index=['user', 'admin'].index(user[3]), key=f"role_{user[1]}")
+            
+            col1, col2 = st.columns([1, 1])
+            
+            with col1:
+                if st.button(f"Update {user[1]}", key=f"update_{user[1]}"):
+                    if new_password:
+                        hashed_password = authentication.hash_password(new_password)
+                        db.update_user_password(user[1], hashed_password)
+                    authentication.update_role(new_username, new_role)
+                    st.success(f"User {user[1]} updated successfully")
+                    st.experimental_rerun()
+            
+            with col2:
+                if st.button(f"Delete {user[1]}", key=f"delete_{user[1]}"):
+                    db.delete_user(user[0])
+                    st.success(f"User {user[1]} deleted successfully")
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
