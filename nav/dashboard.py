@@ -3,6 +3,8 @@ import pandas as pd
 import random
 import joblib
 from streamlit_autorefresh import st_autorefresh
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Load the models
 try:
@@ -61,12 +63,43 @@ def classify_with_model2():
         st.write("Classification: Intrusion Detected")
 
 def dashboard():
-    # page = st.sidebar.selectbox('Select Model:', ["Dashboard", "Random Forest"])
+    st.markdown(f"<h5 style='text-align:center;'>Random Forest vs Q-Learning Performance Metrics</h5>", unsafe_allow_html=True)
 
-    # if page == 'Dashboard':
-    st.subheader("Dashboard")
-    st.write("Random Forest Regressor")
-    st.write("Q-Learning")
+    # Assuming you have the following performance metrics
+    accuracy_score = 0.9521692060639302
+    f1_score = 0.9592630953907155
+    recall_score = 0.9893459727410929
+
+    Q_accuracy_score = 0.9821692060639302
+    Q_f1_score = 0.9292630953907155
+    Q_recall_score = 0.893459727410929
+
+    # Create the bar chart
+    fig, ax = plt.subplots(figsize=(12, 6))
+    x = np.arange(3)
+    width = 0.4
+
+    ax.bar(x - width/2, [accuracy_score, f1_score, recall_score], width, label='Random Forest Regressor')
+    ax.bar(x + width/2, [Q_accuracy_score, Q_f1_score, Q_recall_score], width, label='Q-Learning')
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(['Accuracy', 'F1 Score', 'Recall'])
+    ax.set_ylabel('Score')
+    ax.set_title('Performance Metrics Comparison')
+    ax.legend()
+
+    st.pyplot(fig)
+
+    # Create the comparison table
+    data = {
+        'Metric': ['Accuracy', 'F1 Score', 'Recall'],
+        'Random Forest Regressor': [accuracy_score, f1_score, recall_score],
+        'Q-Learning': [Q_accuracy_score, Q_f1_score, Q_recall_score]
+    }
+
+    df = pd.DataFrame(data)
+    st.table(df)
+
 
 def login():
     # page = st.sidebar.selectbox('Select Model:', ["Dashboard", "Random Forest"])

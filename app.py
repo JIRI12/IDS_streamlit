@@ -14,13 +14,18 @@ authentication = Auth(db)
 # Custom CSS to style the buttons
 st.markdown("""
     <style>
+    [data-testid="stAppViewContainer"] {
+        background-image: url("https://unsplash.com/photos/a-wooden-table-topped-with-an-hourglass-and-a-statue-AURKW6XQwawz");
+        background-size: cover;
+    }
     .stButton > button {
         border: none;
         width: 200px;  /* Fixed width for the buttons */
+        height: 20px;
         background-color: #f0f0f0;  /* Background color to match the sidebar */
         color: #000;  /* Text color */
-        padding: 10px;
-        margin: 10px;
+        padding: 5px;
+        margin: 5px;
         cursor: pointer;
     }
     .stButton > button:hover {
@@ -64,9 +69,7 @@ def main():
         st.session_state.role = ''
     if 'page' not in st.session_state:
         st.session_state.page = ''
-
     if st.session_state.logged_in:
-
         st.sidebar.title(f"Hello, {st.session_state.username} ({st.session_state.role})")
         if st.sidebar.button("Dashboard", key="dashboard_button"):
             st.session_state.page = "dashboard"
@@ -75,6 +78,7 @@ def main():
             
         if st.session_state.role == "admin":    
             if st.sidebar.button("Network Scan", key="network_scan_button"):
+                # st.session_state.page = "network_scan"
                 scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
                 network_scan(scan_level)
             if st.sidebar.button("Manage Users", key="manage_users_button"):

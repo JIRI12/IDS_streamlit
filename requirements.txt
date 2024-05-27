@@ -8,3 +8,4 @@ nmap
 bcrypt
 streamlit_autorefresh
 scapy
+matplotlib
