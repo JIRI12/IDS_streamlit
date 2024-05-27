@@ -130,8 +130,9 @@ if __name__ == "__main__":
         st.write("This script must be run as root to perform network scanning and packet capturing.")
     else:
         scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
-        network_scan(scan_level)
-        drop_privileges()
+        if st.button("Start Scan"):
+            network_scan(scan_level)
+            drop_privileges()
 
 """
 Sure, here's an explanation of the different scan levels implemented in your network scanning function:

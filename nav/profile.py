@@ -8,29 +8,36 @@ db = Database()
 authentication = Auth(db)
 
 def profile():
-    st.header(st.session_state.username)
-    #st.write("Profile page content goes here.")
-
-    if st.session_state.role == "admin":
-        st.subheader("User Management")
-        
-        # Fetch users from the database
-        users = db.get_all_users()
-        
-        # Create a DataFrame to display users
-        user_data = {'Username': [user[1] for user in users], 'Role': [user[3] for user in users]}
+    # Fetch current user's data from the database
+    st.subheader("User Profile")
+    current_user = st.session_state.username
+    user = db.get_user_by_username(current_user)
+    
+    if user:
+        # Create a DataFrame to display the current user's data
+        user_data = {'Username': [user[1]], 'Role': [user[3]]}
         df = pd.DataFrame(user_data)
         
         st.table(df)
-
-        # Create interactive elements for each user
-        for user in users:
-            new_role = st.selectbox(f"Change role for {user[1]}", ['user', 'admin'], index=['user', 'admin'].index(user[3]))
-            if st.button(f"Update Role for {user[1]}"):
-                authentication.update_role(user[1], new_role)
-                st.success(f"Role updated for {user[1]}")
-                st.rerun()
+        
                 
-# call to the profile function in your main application script
+        # Password change section
+        st.subheader("Change Password")
+        old_password = st.text_input("Old Password", type='password')
+        new_password = st.text_input("New Password", type='password')
+        confirm_password = st.text_input("Confirm New Password", type='password')
+
+        if st.button("Update Password"):
+            if new_password == confirm_password:
+                if authentication.login(current_user, old_password):  # Verify old password
+                    hashed_password = authentication.hash_password(new_password)
+                    db.update_user_password(current_user, hashed_password)
+                    st.success("Password updated successfully")
+                else:
+                    st.error("Old password is incorrect")
+            else:
+                st.error("New passwords do not match")
+
+# Call to the profile function in your main application script
 if __name__ == "__main__":
-    profile()                
+    profile()

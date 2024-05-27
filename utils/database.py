@@ -74,4 +74,20 @@ class Database:
         with conn:
             cur = conn.cursor()
             cur.execute('SELECT * FROM users')
-            return cur.fetchall()    
+            return cur.fetchall()   
+    
+    
+    def delete_user(self, user_id):
+        conn = self.create_connection()
+        with conn:
+            conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+            conn.commit()    
+   
+    def get_user_by_username(self, username):
+        conn = self.create_connection()
+        with conn:
+            cur = conn.cursor()
+            cur.execute('SELECT * FROM users WHERE username = ?', (username,))
+            return cur.fetchone()
+
+     
