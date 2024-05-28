@@ -88,49 +88,66 @@ def full_scan(network_range):
     results = nm.scan(hosts=network_range, arguments='-p- -T4 -sT')  # Full scan with all ports and faster scan
     return results['scan']
 
-def network_scan(scan_level):
+def network_scan():
     st.header("Network Scan")
-    st.write("Scanning the network...")
+    #st.write("Scanning the network...")
     
-    network_range = get_network_range()
-    
-    if not network_range:
-        st.write("Failed to determine network range.")
-        return
-    
-    if scan_level == 'Quick Scan':
-        hosts = quick_scan(network_range)
-    elif scan_level == 'Partial Scan':
-        hosts = partial_scan(network_range)
-    elif scan_level == 'Semi-Full Scan':
-        hosts = semi_full_scan(network_range)
-    elif scan_level == 'Full Scan':
-        hosts = full_scan(network_range)
-    else:
-        st.write("Invalid scan level selected.")
-        return
-    
-    st.write("Hosts currently on the network:")
-    for host in hosts:
-        st.write(f"IP: {host}, Status: {hosts[host]['status']['state']}")
-        for proto in hosts[host].all_protocols():
-            lport = hosts[host][proto].keys()
-            for port in lport:
-                state = hosts[host][proto][port]['state']
-                st.write(f"Storing network data: IP={host}, Protocol={proto}, Port={port}, State={state}")
+    scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
+    start_scan = st.button("Start Scan")
+    previous_scan_level = st.session_state.get('previous_scan_level', None)
 
-    st.write("Capturing packets on the network...")
-    try:
-        sniff(prn=packet_callback, store=False)
-    except PermissionError:
-        st.write("Permission error: you need to run this script with elevated privileges.")
+    if scan_level != previous_scan_level:
+        st.session_state['previous_scan_level'] = scan_level
+        st.write("Scan level changed. Please click 'Start Scan' to initiate the new scan.")
+    
+    if start_scan:
+        network_range = get_network_range()
+        if not network_range:
+            st.write("Failed to determine network range.")
+            return
+        
+        if scan_level == 'Quick Scan':
+            hosts = quick_scan(network_range)
+        elif scan_level == 'Partial Scan':
+            hosts = partial_scan(network_range)
+        elif scan_level == 'Semi-Full Scan':
+            hosts = semi_full_scan(network_range)
+        elif scan_level == 'Full Scan':
+            hosts = full_scan(network_range)
+        else:
+            st.write("Invalid scan level selected.")
+            return
+        st.write("Scanning the network...")
+        st.write("Hosts currently on the network:")
+        for host in hosts:
+            st.write(f"IP: {host}, Status: {hosts[host]['status']['state']}")
+            for proto in hosts[host].all_protocols():
+                lport = hosts[host][proto].keys()
+                for port in lport:
+                    state = hosts[host][proto][port]['state']
+                    st.write(f"Storing network data: IP={host}, Protocol={proto}, Port={port}, State={state}")
+
+        st.write("Capturing packets on the network...")
+        try:
+            sniff(prn=packet_callback, store=False)
+        except PermissionError:
+            st.write("Permission error: you need to run this script with elevated privileges.")
+        drop_privileges()
+
 
 if __name__ == "__main__":
     if os.getuid() != 0:
         st.write("This script must be run as root to perform network scanning and packet capturing.")
     else:
         scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
-        if st.button("Start Scan"):
+        start_scan = st.button("Start Scan")
+        previous_scan_level = st.session_state.get('previous_scan_level', None)
+
+        if scan_level != previous_scan_level:
+            st.session_state['previous_scan_level'] = scan_level
+            st.write("Scan level changed. Please click 'Start Scan' to initiate the new scan.")
+
+        if start_scan:
             network_scan(scan_level)
             drop_privileges()
 

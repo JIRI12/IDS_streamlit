@@ -5,8 +5,6 @@ from utils.database import Database
 from utils.network_scan import network_scan
 import pandas as pd
 
-
-
 # Initialize the database and authentication
 db = Database()
 authentication = Auth(db)
@@ -54,14 +52,6 @@ def main():
                 st.error("Passwords do not match.")
         return  # Exit the main function to prevent showing the regular login/register interface
 
-    # if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-    #     login()
-    # else:
-    #     if st.session_state.role == 'admin':
-    #         manage_users()
-    #     else:
-    #         st.write("Welcome, you are logged in.")
-    
     # Initialize session state variables
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
@@ -69,6 +59,7 @@ def main():
         st.session_state.role = ''
     if 'page' not in st.session_state:
         st.session_state.page = ''
+
     if st.session_state.logged_in:
         st.sidebar.title(f"Hello, {st.session_state.username} ({st.session_state.role})")
         if st.sidebar.button("Dashboard", key="dashboard_button"):
@@ -78,9 +69,7 @@ def main():
             
         if st.session_state.role == "admin":    
             if st.sidebar.button("Network Scan", key="network_scan_button"):
-                # st.session_state.page = "network_scan"
-                scan_level = st.selectbox('Select Scan Level', ['Quick Scan', 'Partial Scan', 'Semi-Full Scan', 'Full Scan'])
-                network_scan(scan_level)
+                st.session_state.page = "network_scan"
             if st.sidebar.button("Manage Users", key="manage_users_button"):
                 st.session_state.page = "manage_users" 
                    
@@ -92,9 +81,8 @@ def main():
             st.session_state.page = "logout"
             st.session_state.logged_in = False
             st.session_state.username = ''
-            st.rerun()
+            st.experimental_rerun()
 
-        
         st.header("Network Monitoring and Intrusion Detection")
         
         if st.session_state.page == "dashboard":
@@ -110,24 +98,16 @@ def main():
             dashboard.manual_simulation()
         elif st.session_state.page == "manage_users":
             if st.session_state.role == "admin":
-                manage_users()    
+                manage_users()
     else:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Login", key="login_button"):
                 st.session_state.page = "login"
                 
-                
-        # with col2:
-        #     if st.button("Register", key="register_button"):
-        #         st.session_state.page = "register"
-
         if st.session_state.page == "login":
             login.login(authentication)
-            
-        # elif st.session_state.page == "register":
-        #     register.register(authentication)
-        
+
 def manage_users():
     st.header("Manage Users")
     st.write("Only the admin can access this page")
@@ -182,8 +162,7 @@ def manage_users():
                 if st.button(f"Delete {user[1]}", key=f"delete_{user[1]}"):
                     db.delete_user(user[0])
                     st.success(f"User {user[1]} deleted successfully")
-                    st.rerun()
+                    st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
-
